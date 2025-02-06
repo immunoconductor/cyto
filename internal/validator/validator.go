@@ -1,6 +1,11 @@
 package validator
 
-import "unicode"
+import (
+	"fmt"
+	"unicode"
+
+	"github.com/immunoconductor/cyto/fcs/constants"
+)
 
 // Only printable ASCII characters in the range: 32-126 (20-7E hex), are valid
 func IsValidKeyword(s string) bool {
@@ -11,9 +16,17 @@ func IsValidKeyword(s string) bool {
 			return false
 		}
 	}
+	// also add logic to check that it begins with '$'
 	return true
 }
 
-func HasRequiredKeywords() bool {
+func HasRequiredKeywords(keywords map[string]string) bool {
+	for _, keyword := range constants.TextSegmentKeywords {
+		_, exists := keywords[string(keyword)]
+		if !exists {
+			fmt.Println("missing keyword: ", keyword)
+			return false
+		}
+	}
 	return true
 }

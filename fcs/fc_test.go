@@ -7,13 +7,26 @@ import (
 	"github.com/immunoconductor/cyto/fcs"
 )
 
-func TestFCS(t *testing.T) {
-	fcs, err := fcs.NewFCS("./parser/test-data/test.fcs")
+func TestFCS3_0(t *testing.T) {
+	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0.fcs")
 	if err != nil {
-		t.Errorf("expected new FCS object to be created")
+		t.Errorf(err.Error())
 	}
 
 	fmt.Println(fcs.HEADER.Version)
 	fmt.Println(fcs.HEADER.Segments)
-	fmt.Println(string(fcs.HEADER.Bytes))
+	fmt.Println(fcs.TEXT.Keywords)
+
+}
+
+func TestFCS3_1(t *testing.T) {
+	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.1.fcs")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	fmt.Println(fcs.HEADER.Version)
+	fmt.Println(fcs.HEADER.Segments)
+	fmt.Println(fcs.TEXT.Keywords)
+
 }
