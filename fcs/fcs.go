@@ -7,10 +7,12 @@ import (
 
 	"github.com/immunoconductor/cyto/fcs/constants"
 	"github.com/immunoconductor/cyto/fcs/parser"
+	"github.com/immunoconductor/cyto/internal/validator"
 )
 
 type FCS struct {
 	HEADER FCSHeader
+	TEXT   []byte
 }
 
 type FCSHeader struct {
@@ -37,7 +39,17 @@ func NewFCS(s string) (*FCS, error) {
 		return nil, err
 	}
 
-	return &FCS{HEADER: *h}, nil
+	t, err := getTextSegment(b, h)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = validator.HasRequiredKeywords(t)
+
+	return &FCS{
+		HEADER: *h,
+		TEXT:   t,
+	}, nil
 }
 
 func getHeader(byteSlice []byte) (*FCSHeader, error) {
@@ -94,17 +106,27 @@ func getHeader(byteSlice []byte) (*FCSHeader, error) {
 			End:   *endOfAnalysisSegmentInt,
 		},
 	}
-	userDefinedSegments := byteSlice[58:*beginningOfTextSegmentInt]
-	fmt.Printf("offset to user defined OTHER segments: %s, length: %v\n", string(userDefinedSegments), len(userDefinedSegments)) // offset to user defined OTHER segments
 
-	headerBytes := byteSlice[:58]                             // up-to ANALYSIS segment
-	headerBytes = append(headerBytes, userDefinedSegments...) // including any user defined segments
+	headerBytes := byteSlice[:58] // up-to ANALYSIS segment
+
+	userDefinedSegments := byteSlice[58:*beginningOfTextSegmentInt]
+	if len(userDefinedSegments) > 0 {
+		fmt.Println("user defined segments exist in file")
+		fmt.Printf("offset to user defined OTHER segments: %s, length: %v\n", string(userDefinedSegments), len(userDefinedSegments)) // offset to user defined OTHER segments
+		headerBytes = append(headerBytes, userDefinedSegments...)                                                                    // including any user defined segments
+	}
 
 	return &FCSHeader{
 		Bytes:    headerBytes,
 		Version:  version,
 		Segments: segments,
 	}, nil
+}
+
+func getTextSegment(byteSlice []byte, h *FCSHeader) ([]byte, error) {
+	textSegment := h.Segments["TEXT"]
+
+	return byteSlice[textSegment.Start : textSegment.End+1], nil
 }
 
 func getOffset(b []byte, start int, end int) (*int, error) {

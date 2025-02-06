@@ -22,6 +22,25 @@ const (
 	TOT           TextSegmentKeyword = "$TOT"
 )
 
+var TextSegmentKeywords = []TextSegmentKeyword{
+	"$BEGINANALYSIS",
+	"$BEGINDATA",
+	"$BEGINSTEXT",
+	"$BYTEORD",
+	"$DATATYPE",
+	"$ENDANALYSIS",
+	"$ENDDATA",
+	"$ENDSTEXT",
+	"$MODE",
+	"$NEXTDATA",
+	"$PAR",
+	"$PnB",
+	"$PnE",
+	"$PnN",
+	"$PnR",
+	"$TOT",
+}
+
 type SegmentType string
 
 const (
