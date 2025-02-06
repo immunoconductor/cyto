@@ -47,6 +47,7 @@ func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
 	// fmt.Printf("offset to first byte of ANALYSIS segment: %s, length: %v\n", string(byteSlice[42:50]), len(byteSlice[42:50])) // offset to first byte of ANALYSIS segment
 	// fmt.Printf("offset to last byte of ANALYSIS segment: %s, length: %v\n", string(byteSlice[50:58]), len(byteSlice[50:58]))  // offset to last byte of ANALYSIS segment
 
+	// refactor to use constants for offsets
 	version := strings.TrimSpace(string(byteSlice[0:6]))
 
 	beginningOfTextSegmentInt, err := getOffset(byteSlice, 10, 18)
