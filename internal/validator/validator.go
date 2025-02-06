@@ -13,3 +13,7 @@ func IsValidKeyword(s string) bool {
 	}
 	return true
 }
+
+func HasRequiredKeywords() bool {
+	return true
+}
