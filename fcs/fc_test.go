@@ -14,9 +14,9 @@ func TestFCS(t *testing.T) {
 	}
 
 	fmt.Println(fcs.HEADER.Version)
-	fmt.Println(fcs.HEADER.Segments)
-	fmt.Println(string(fcs.HEADER.Bytes))
+	// fmt.Println(fcs.HEADER.Segments)
+	// fmt.Println(string(fcs.HEADER.Bytes))
 
-	fmt.Println(string(fcs.TEXT))
+	fmt.Println(fcs.TEXT.Keywords)
 
 }

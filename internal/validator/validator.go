@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"strings"
 	"unicode"
 
 	"github.com/immunoconductor/cyto/fcs/constants"
@@ -17,14 +16,14 @@ func IsValidKeyword(s string) bool {
 			return false
 		}
 	}
+	// also add logic to check that it begins with '$'
 	return true
 }
 
-func HasRequiredKeywords(t []byte) bool {
-	bString := string(t)
-
+func HasRequiredKeywords(keywords map[string]string) bool {
 	for _, keyword := range constants.TextSegmentKeywords {
-		if !strings.Contains(bString, string(keyword)) {
+		_, exists := keywords[string(keyword)]
+		if !exists {
 			fmt.Println("missing keyword: ", keyword)
 			return false
 		}

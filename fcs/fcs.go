@@ -1,33 +1,18 @@
 package fcs
 
 import (
+	"encoding/csv"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/immunoconductor/cyto/fcs/constants"
+	"github.com/immunoconductor/cyto/fcs/models"
 	"github.com/immunoconductor/cyto/fcs/parser"
 	"github.com/immunoconductor/cyto/internal/validator"
 )
 
-type FCS struct {
-	HEADER FCSHeader
-	TEXT   []byte
-}
-
-type FCSHeader struct {
-	Bytes    []byte
-	Version  string
-	Segments map[constants.SegmentType]FCSSegment
-}
-
-type FCSSegment struct {
-	Type  constants.SegmentType
-	Start int
-	End   int
-}
-
-func NewFCS(s string) (*FCS, error) {
+func NewFCS(s string) (*models.FCS, error) {
 	parser := parser.NewFCSParser(s)
 	b, err := parser.Read()
 	if err != nil {
@@ -44,15 +29,15 @@ func NewFCS(s string) (*FCS, error) {
 		return nil, err
 	}
 
-	_ = validator.HasRequiredKeywords(t)
+	_ = validator.HasRequiredKeywords(t.Keywords)
 
-	return &FCS{
+	return &models.FCS{
 		HEADER: *h,
-		TEXT:   t,
+		TEXT:   *t,
 	}, nil
 }
 
-func getHeader(byteSlice []byte) (*FCSHeader, error) {
+func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
 	// fmt.Printf("version identifier: %s, length: %v\n", string(byteSlice[0:6]), len(byteSlice[0:6]))                           // version identifier
 	// fmt.Printf("space characters: %s, length: %v\n", string(byteSlice[6:10]), len(byteSlice[6:10]))                           // space characters
 	// fmt.Printf("offset to first byte of TEXT segment: %s, length: %v\n", string(byteSlice[10:18]), len(byteSlice[10:18]))     // offset to first byte of TEXT segment
@@ -89,7 +74,7 @@ func getHeader(byteSlice []byte) (*FCSHeader, error) {
 		return nil, err
 	}
 
-	var segments = map[constants.SegmentType]FCSSegment{
+	var segments = map[constants.SegmentType]models.FCSSegment{
 		constants.TEXT: {
 			Type:  constants.TEXT,
 			Start: *beginningOfTextSegmentInt,
@@ -116,17 +101,39 @@ func getHeader(byteSlice []byte) (*FCSHeader, error) {
 		headerBytes = append(headerBytes, userDefinedSegments...)                                                                    // including any user defined segments
 	}
 
-	return &FCSHeader{
+	return &models.FCSHeader{
 		Bytes:    headerBytes,
 		Version:  version,
 		Segments: segments,
 	}, nil
 }
 
-func getTextSegment(byteSlice []byte, h *FCSHeader) ([]byte, error) {
+func getTextSegment(byteSlice []byte, h *models.FCSHeader) (*models.FCSText, error) {
 	textSegment := h.Segments["TEXT"]
 
-	return byteSlice[textSegment.Start : textSegment.End+1], nil
+	textSegmentBytes := byteSlice[textSegment.Start : textSegment.End+1]
+	textSegmentString := string(textSegmentBytes)
+
+	delimeter := textSegmentString[:1]
+	r := csv.NewReader(strings.NewReader(string(textSegmentBytes)))
+	r.Comma = []rune(delimeter)[0]
+
+	records, err := r.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	recSlice := records[0][1 : len(records[0])-1]
+	var Keywords = make(map[string]string)
+	for i := 0; i < len(recSlice); i = i + 2 {
+		// fmt.Printf("%s =>  %s\n", recSlice[i], recSlice[i+1])
+		Keywords[recSlice[i]] = recSlice[i+1]
+	}
+
+	return &models.FCSText{
+		Bytes:    textSegmentBytes,
+		Keywords: Keywords,
+	}, nil
 }
 
 func getOffset(b []byte, start int, end int) (*int, error) {
