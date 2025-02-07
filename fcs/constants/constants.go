@@ -15,14 +15,21 @@ const (
 	MODE          TextSegmentKeyword = "$MODE"
 	NEXTDATA      TextSegmentKeyword = "$NEXTDATA"
 	PAR           TextSegmentKeyword = "$PAR"
+	TOT           TextSegmentKeyword = "$TOT"
 	PnB           TextSegmentKeyword = "$PnB"
 	PnE           TextSegmentKeyword = "$PnE"
 	PnN           TextSegmentKeyword = "$PnN"
 	PnR           TextSegmentKeyword = "$PnR"
-	TOT           TextSegmentKeyword = "$TOT"
 )
 
-var TextSegmentKeywords = []TextSegmentKeyword{
+var TextSegmentRequiredParameterKeywords = []string{
+	"$P%dB",
+	"$P%dE",
+	"$P%dN",
+	"$P%dR",
+}
+
+var TextSegmentRequiredKeywords = []TextSegmentKeyword{
 	"$BEGINANALYSIS",
 	"$BEGINDATA",
 	"$BEGINSTEXT",
@@ -34,11 +41,11 @@ var TextSegmentKeywords = []TextSegmentKeyword{
 	"$MODE",
 	"$NEXTDATA",
 	"$PAR",
-	"$PnB",
-	"$PnE",
-	"$PnN",
-	"$PnR",
 	"$TOT",
+	// "$PnB",
+	// "$PnE",
+	// "$PnN",
+	// "$PnR",
 }
 
 type SegmentType string

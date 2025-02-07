@@ -8,14 +8,14 @@ import (
 )
 
 func TestFCS3_0(t *testing.T) {
-	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0.fcs")
+	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0_2.fcs")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
 	fmt.Println(fcs.HEADER.Version)
-	fmt.Println(fcs.HEADER.Segments)
-	fmt.Println(fcs.TEXT.Keywords)
+	// fmt.Println(fcs.HEADER.Segments)
+	// fmt.Println(fcs.TEXT.Keywords)
 
 }
 
@@ -26,7 +26,7 @@ func TestFCS3_1(t *testing.T) {
 	}
 
 	fmt.Println(fcs.HEADER.Version)
-	fmt.Println(fcs.HEADER.Segments)
-	fmt.Println(fcs.TEXT.Keywords)
+	// fmt.Println(fcs.HEADER.Segments)
+	// fmt.Println(fcs.TEXT.Keywords)
 
 }

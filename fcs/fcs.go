@@ -1,8 +1,11 @@
 package fcs
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/csv"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -31,9 +34,15 @@ func NewFCS(s string) (*models.FCS, error) {
 
 	_ = validator.HasRequiredKeywords(t.Keywords)
 
+	d, err := getDataSegment(t, b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1])
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.FCS{
 		HEADER: *h,
 		TEXT:   *t,
+		DATA:   *d,
 	}, nil
 }
 
@@ -119,16 +128,16 @@ func getTextSegment(byteSlice []byte, h *models.FCSHeader) (*models.FCSText, err
 	r := csv.NewReader(strings.NewReader(string(textSegmentBytes)))
 	r.Comma = []rune(delimeter)[0]
 
-	records, err := r.ReadAll()
+	segment, err := r.ReadAll()
 	if err != nil {
 		return nil, err
 	}
 
-	recSlice := records[0][1 : len(records[0])-1]
+	textSegmentSlice := segment[0][1 : len(segment[0])-1]
 	var Keywords = make(map[string]string)
-	for i := 0; i < len(recSlice); i = i + 2 {
+	for i := 0; i < len(textSegmentSlice); i = i + 2 {
 		// fmt.Printf("%s =>  %s\n", recSlice[i], recSlice[i+1])
-		Keywords[recSlice[i]] = recSlice[i+1]
+		Keywords[strings.TrimSpace(textSegmentSlice[i])] = strings.TrimSpace(textSegmentSlice[i+1])
 	}
 
 	return &models.FCSText{
@@ -144,4 +153,58 @@ func getOffset(b []byte, start int, end int) (*int, error) {
 		return nil, err
 	}
 	return &intValue, nil
+}
+
+func getDataSegment(t *models.FCSText, byteSlice []byte) (*models.FCSData, error) {
+	data := models.FCSData{
+		Bytes:    byteSlice,
+		Mode:     strings.TrimSpace(t.Keywords["$MODE"]),
+		DataType: strings.TrimSpace(t.Keywords["$DATATYPE"]),
+	}
+
+	np, _ := strconv.Atoi(strings.TrimSpace(t.Keywords["$PAR"]))
+	ne, _ := strconv.Atoi(strings.TrimSpace(t.Keywords["$TOT"]))
+	byteOrder := strings.TrimSpace(t.Keywords["$BYTEORD"])
+
+	// fmt.Println(byteOrder)
+	order, err := determineByteOrder(byteOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(ne, " x ", np)
+
+	float32Data := make([]float32, np*ne)
+	r := bytes.NewReader(byteSlice)
+	err = binary.Read(r, order, &float32Data) // determine endian
+	if err != nil {
+		log.Fatal("binary.Read failed ", err)
+		return nil, err
+	}
+
+	rows := ne
+	cols := np
+	twoDimFloat32Data := make([][]float32, rows)
+
+	// TODO: refactor
+	for i := range twoDimFloat32Data {
+		twoDimFloat32Data[i] = make([]float32, cols)
+		for j := range twoDimFloat32Data[i] {
+			twoDimFloat32Data[i][j] = float32Data[i*cols+j]
+		}
+	}
+
+	data.Data = twoDimFloat32Data
+	return &data, nil
+}
+
+func determineByteOrder(order string) (binary.ByteOrder, error) {
+	switch order {
+	case "1,2,3,4":
+		return binary.LittleEndian, nil
+	case "4,3,2,1":
+		return binary.BigEndian, nil
+	default:
+		return nil, fmt.Errorf("unknown byte order %s", order)
+	}
 }
