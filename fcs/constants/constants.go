@@ -22,6 +22,26 @@ const (
 	PnR           TextSegmentKeyword = "$PnR"
 )
 
+var SegmentByteOffsets = map[string][]int{
+	"Version":                  {0, 5},
+	"SpaceCharacters":          {6, 9},
+	"FirstByteTEXTSegment":     {10, 17},
+	"LastByteTEXTSegment":      {18, 25},
+	"FirstByteDATASegment":     {26, 33},
+	"LastByteDATASegment":      {34, 41},
+	"FirstByteANALYSISSegment": {42, 49},
+	"LastByteANALYSISSegment":  {50, 57},
+}
+
+type SegmentType string
+
+const (
+	TEXT     SegmentType = "TEXT"
+	DATA     SegmentType = "DATA"
+	ANALYSIS SegmentType = "ANALYSIS"
+	OTHER    SegmentType = "OTHER"
+)
+
 var TextSegmentRequiredParameterKeywords = []string{
 	"$P%dB",
 	"$P%dE",
@@ -42,17 +62,4 @@ var TextSegmentRequiredKeywords = []TextSegmentKeyword{
 	"$NEXTDATA",
 	"$PAR",
 	"$TOT",
-	// "$PnB",
-	// "$PnE",
-	// "$PnN",
-	// "$PnR",
 }
-
-type SegmentType string
-
-const (
-	TEXT     SegmentType = "TEXT"
-	DATA     SegmentType = "DATA"
-	ANALYSIS SegmentType = "ANALYSIS"
-	OTHER    SegmentType = "OTHER"
-)
