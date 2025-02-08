@@ -2,8 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"unicode"
 
 	"github.com/immunoconductor/cyto/fcs/constants"
@@ -23,24 +21,11 @@ func IsValidKeyword(s string) bool {
 }
 
 func HasRequiredKeywords(keywords map[string]string) bool {
-	fmt.Println(keywords)
-	np, _ := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
 	for _, keyword := range constants.TextSegmentRequiredKeywords {
 		_, exists := keywords[string(keyword)]
 		if !exists {
 			fmt.Println("missing keyword: ", keyword)
 			return false
-		}
-	}
-
-	for i := 1; i <= np; i++ {
-		for _, keywordFmt := range constants.TextSegmentRequiredParameterKeywords {
-			keyword := fmt.Sprintf(keywordFmt, i)
-			_, exists := keywords[keyword]
-			if !exists {
-				fmt.Println("missing required parameter keyword: ", keyword)
-				return false
-			}
 		}
 	}
 	return true

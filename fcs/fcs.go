@@ -10,12 +10,42 @@ import (
 	"strings"
 
 	"github.com/immunoconductor/cyto/fcs/constants"
-	"github.com/immunoconductor/cyto/fcs/models"
 	"github.com/immunoconductor/cyto/fcs/parser"
 	"github.com/immunoconductor/cyto/internal/validator"
 )
 
-func NewFCS(s string) (*models.FCS, error) {
+type FCS struct {
+	HEADER FCSHeader
+	TEXT   FCSText
+	DATA   FCSData
+}
+
+type FCSHeader struct {
+	Bytes    []byte
+	Version  string
+	Segments map[constants.SegmentType]FCSSegment
+}
+
+type FCSSegment struct {
+	Type  constants.SegmentType
+	Start int
+	End   int
+}
+
+type FCSText struct {
+	Bytes      []byte
+	Keywords   map[string]string
+	Parameters []string
+}
+
+type FCSData struct {
+	Bytes    []byte
+	Mode     string
+	DataType string
+	Data     [][]float32
+}
+
+func NewFCS(s string) (*FCS, error) {
 	parser := parser.NewFCSParser(s)
 	b, err := parser.Read()
 	if err != nil {
@@ -33,20 +63,29 @@ func NewFCS(s string) (*models.FCS, error) {
 	}
 
 	_ = validator.HasRequiredKeywords(t.Keywords)
+	parameters, err := getParameters(t.Keywords)
+	if err != nil {
+		return nil, err
+	}
+	t.Parameters = parameters
 
 	d, err := getDataSegment(t, b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1])
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.FCS{
+	return &FCS{
 		HEADER: *h,
 		TEXT:   *t,
 		DATA:   *d,
 	}, nil
 }
 
-func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
+func (f *FCS) ToCSV() {
+
+}
+
+func getHeader(byteSlice []byte) (*FCSHeader, error) {
 	versionByteOffset := constants.SegmentByteOffsets["Version"]
 	version := strings.TrimSpace(string(byteSlice[versionByteOffset[0] : versionByteOffset[1]+1]))
 
@@ -83,7 +122,7 @@ func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
 		return nil, err
 	}
 
-	var segments = map[constants.SegmentType]models.FCSSegment{
+	var segments = map[constants.SegmentType]FCSSegment{
 		constants.TEXT: {
 			Type:  constants.TEXT,
 			Start: *beginningOfTextSegmentInt,
@@ -110,14 +149,14 @@ func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
 		headerBytes = append(headerBytes, userDefinedSegments...)                                                                    // including any user defined segments
 	}
 
-	return &models.FCSHeader{
+	return &FCSHeader{
 		Bytes:    headerBytes,
 		Version:  version,
 		Segments: segments,
 	}, nil
 }
 
-func getTextSegment(byteSlice []byte, h *models.FCSHeader) (*models.FCSText, error) {
+func getTextSegment(byteSlice []byte, h *FCSHeader) (*FCSText, error) {
 	textSegment := h.Segments["TEXT"]
 
 	textSegmentBytes := byteSlice[textSegment.Start : textSegment.End+1]
@@ -139,7 +178,7 @@ func getTextSegment(byteSlice []byte, h *models.FCSHeader) (*models.FCSText, err
 		Keywords[strings.TrimSpace(textSegmentSlice[i])] = strings.TrimSpace(textSegmentSlice[i+1])
 	}
 
-	return &models.FCSText{
+	return &FCSText{
 		Bytes:    textSegmentBytes,
 		Keywords: Keywords,
 	}, nil
@@ -154,8 +193,8 @@ func getOffset(b []byte, start int, end int) (*int, error) {
 	return &intValue, nil
 }
 
-func getDataSegment(t *models.FCSText, byteSlice []byte) (*models.FCSData, error) {
-	data := models.FCSData{
+func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
+	data := FCSData{
 		Bytes:    byteSlice,
 		Mode:     strings.TrimSpace(t.Keywords["$MODE"]),
 		DataType: strings.TrimSpace(t.Keywords["$DATATYPE"]),
@@ -192,7 +231,6 @@ func getDataSegment(t *models.FCSText, byteSlice []byte) (*models.FCSData, error
 			twoDimFloat32Data[i][j] = float32Data[i*cols+j]
 		}
 	}
-
 	data.Data = twoDimFloat32Data
 	return &data, nil
 }
@@ -206,4 +244,27 @@ func determineByteOrder(order string) (binary.ByteOrder, error) {
 	default:
 		return nil, fmt.Errorf("unknown byte order %s", order)
 	}
+}
+
+func getParameters(keywords map[string]string) ([]string, error) {
+	var parameters []string
+	np, err := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
+	if err != nil {
+		return nil, fmt.Errorf("could not convert %s to int", keywords["$PAR"])
+	}
+
+	for i := 1; i <= np; i++ {
+		for _, keywordFmt := range constants.TextSegmentRequiredParameterKeywords {
+			keyword := fmt.Sprintf(keywordFmt, i)
+			keywordValue, exists := keywords[keyword]
+			if !exists {
+				return nil, fmt.Errorf("missing required parameter keyword: %s", keyword)
+			}
+			if keywordFmt == "$P%dN" {
+				parameters = append(parameters, keywordValue)
+			}
+		}
+	}
+
+	return parameters, nil
 }
