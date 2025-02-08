@@ -49,6 +49,10 @@ var TextSegmentRequiredParameterKeywords = []string{
 	"$P%dR",
 }
 
+var TextSegmentParameterNames = []string{
+	"$P%dS",
+}
+
 var TextSegmentRequiredKeywords = []TextSegmentKeyword{
 	"$BEGINANALYSIS",
 	"$BEGINDATA",

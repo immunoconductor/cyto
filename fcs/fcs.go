@@ -11,6 +11,7 @@ import (
 
 	"github.com/immunoconductor/cyto/fcs/constants"
 	"github.com/immunoconductor/cyto/fcs/parser"
+	"github.com/immunoconductor/cyto/internal/csv_writer"
 	"github.com/immunoconductor/cyto/internal/validator"
 )
 
@@ -35,14 +36,16 @@ type FCSSegment struct {
 type FCSText struct {
 	Bytes      []byte
 	Keywords   map[string]string
-	Parameters []string
+	ShortNames []string
+	FullNames  []string
 }
 
 type FCSData struct {
-	Bytes    []byte
-	Mode     string
-	DataType string
-	Data     [][]float32
+	Bytes      []byte
+	Mode       string
+	DataType   string
+	Data       [][]float32
+	DataString [][]string
 }
 
 func NewFCS(s string) (*FCS, error) {
@@ -63,11 +66,17 @@ func NewFCS(s string) (*FCS, error) {
 	}
 
 	_ = validator.HasRequiredKeywords(t.Keywords)
-	parameters, err := getParameters(t.Keywords)
+	shortNames, err := getShortNames(t.Keywords)
 	if err != nil {
 		return nil, err
 	}
-	t.Parameters = parameters
+	t.ShortNames = shortNames
+
+	fullNames, err := getFullNames(t.Keywords)
+	if err != nil {
+		return nil, err
+	}
+	t.FullNames = fullNames
 
 	d, err := getDataSegment(t, b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1])
 	if err != nil {
@@ -81,8 +90,13 @@ func NewFCS(s string) (*FCS, error) {
 	}, nil
 }
 
-func (f *FCS) ToCSV() {
+func (f *FCS) ToCSV(path string) {
+	writer := csv_writer.NewCSVWriter(f.ToTibble(), path)
+	writer.Write()
+}
 
+func (f *FCS) ToTibble() [][]string {
+	return append([][]string{f.TEXT.ShortNames}, f.DATA.DataString...)
 }
 
 func getHeader(byteSlice []byte) (*FCSHeader, error) {
@@ -223,15 +237,20 @@ func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
 	rows := ne
 	cols := np
 	twoDimFloat32Data := make([][]float32, rows)
+	twoDimString2Data := make([][]string, rows)
 
 	// TODO: refactor
 	for i := range twoDimFloat32Data {
 		twoDimFloat32Data[i] = make([]float32, cols)
+		twoDimString2Data[i] = make([]string, cols)
+
 		for j := range twoDimFloat32Data[i] {
 			twoDimFloat32Data[i][j] = float32Data[i*cols+j]
+			twoDimString2Data[i][j] = fmt.Sprintf("%f", float32Data[i*cols+j])
 		}
 	}
 	data.Data = twoDimFloat32Data
+	data.DataString = twoDimString2Data
 	return &data, nil
 }
 
@@ -246,8 +265,9 @@ func determineByteOrder(order string) (binary.ByteOrder, error) {
 	}
 }
 
-func getParameters(keywords map[string]string) ([]string, error) {
-	var parameters []string
+func getShortNames(keywords map[string]string) ([]string, error) {
+	var shortNames []string
+
 	np, err := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
 	if err != nil {
 		return nil, fmt.Errorf("could not convert %s to int", keywords["$PAR"])
@@ -261,10 +281,28 @@ func getParameters(keywords map[string]string) ([]string, error) {
 				return nil, fmt.Errorf("missing required parameter keyword: %s", keyword)
 			}
 			if keywordFmt == "$P%dN" {
-				parameters = append(parameters, keywordValue)
+				shortNames = append(shortNames, keywordValue)
 			}
 		}
 	}
 
-	return parameters, nil
+	return shortNames, nil
+}
+
+func getFullNames(keywords map[string]string) ([]string, error) {
+	var names []string
+
+	np, err := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
+	if err != nil {
+		return nil, fmt.Errorf("could not convert %s to int", keywords["$PAR"])
+	}
+
+	for i := 1; i <= np; i++ {
+		for _, keywordFmt := range constants.TextSegmentParameterNames {
+			keyword := fmt.Sprintf(keywordFmt, i)
+			names = append(names, keywords[keyword])
+		}
+	}
+
+	return names, nil
 }
