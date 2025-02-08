@@ -15,14 +15,41 @@ const (
 	MODE          TextSegmentKeyword = "$MODE"
 	NEXTDATA      TextSegmentKeyword = "$NEXTDATA"
 	PAR           TextSegmentKeyword = "$PAR"
+	TOT           TextSegmentKeyword = "$TOT"
 	PnB           TextSegmentKeyword = "$PnB"
 	PnE           TextSegmentKeyword = "$PnE"
 	PnN           TextSegmentKeyword = "$PnN"
 	PnR           TextSegmentKeyword = "$PnR"
-	TOT           TextSegmentKeyword = "$TOT"
 )
 
-var TextSegmentKeywords = []TextSegmentKeyword{
+var SegmentByteOffsets = map[string][]int{
+	"Version":                  {0, 5},
+	"SpaceCharacters":          {6, 9},
+	"FirstByteTEXTSegment":     {10, 17},
+	"LastByteTEXTSegment":      {18, 25},
+	"FirstByteDATASegment":     {26, 33},
+	"LastByteDATASegment":      {34, 41},
+	"FirstByteANALYSISSegment": {42, 49},
+	"LastByteANALYSISSegment":  {50, 57},
+}
+
+type SegmentType string
+
+const (
+	TEXT     SegmentType = "TEXT"
+	DATA     SegmentType = "DATA"
+	ANALYSIS SegmentType = "ANALYSIS"
+	OTHER    SegmentType = "OTHER"
+)
+
+var TextSegmentRequiredParameterKeywords = []string{
+	"$P%dB",
+	"$P%dE",
+	"$P%dN",
+	"$P%dR",
+}
+
+var TextSegmentRequiredKeywords = []TextSegmentKeyword{
 	"$BEGINANALYSIS",
 	"$BEGINDATA",
 	"$BEGINSTEXT",
@@ -34,18 +61,5 @@ var TextSegmentKeywords = []TextSegmentKeyword{
 	"$MODE",
 	"$NEXTDATA",
 	"$PAR",
-	"$PnB",
-	"$PnE",
-	"$PnN",
-	"$PnR",
 	"$TOT",
 }
-
-type SegmentType string
-
-const (
-	TEXT     SegmentType = "TEXT"
-	DATA     SegmentType = "DATA"
-	ANALYSIS SegmentType = "ANALYSIS"
-	OTHER    SegmentType = "OTHER"
-)
