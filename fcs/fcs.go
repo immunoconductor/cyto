@@ -127,34 +127,34 @@ func getHeader(byteSlice []byte) (*FCSHeader, error) {
 	version := strings.TrimSpace(string(byteSlice[versionByteOffset[0] : versionByteOffset[1]+1]))
 
 	beginningOfTextSegmentOffset := constants.SegmentByteOffsets["FirstByteTEXTSegment"]
-	beginningOfTextSegmentInt, err := getOffset(
+	beginningOfTextSegmentInt, err := getOffsetAndConvertToInt(
 		byteSlice, beginningOfTextSegmentOffset[0],
 		beginningOfTextSegmentOffset[1]+1)
 	if err != nil {
 		return nil, err
 	}
 	endOfTextSegmentOffset := constants.SegmentByteOffsets["LastByteTEXTSegment"]
-	endOfTextSegmentInt, err := getOffset(byteSlice, endOfTextSegmentOffset[0], endOfTextSegmentOffset[1]+1)
+	endOfTextSegmentInt, err := getOffsetAndConvertToInt(byteSlice, endOfTextSegmentOffset[0], endOfTextSegmentOffset[1]+1)
 	if err != nil {
 		return nil, err
 	}
 	beginningOfDataSegmentOffset := constants.SegmentByteOffsets["FirstByteDATASegment"]
-	beginningOfDataSegmentInt, err := getOffset(byteSlice, beginningOfDataSegmentOffset[0], beginningOfDataSegmentOffset[1]+1)
+	beginningOfDataSegmentInt, err := getOffsetAndConvertToInt(byteSlice, beginningOfDataSegmentOffset[0], beginningOfDataSegmentOffset[1]+1)
 	if err != nil {
 		return nil, err
 	}
 	endOfDataSegmentOffset := constants.SegmentByteOffsets["LastByteDATASegment"]
-	endOfDataSegmentInt, err := getOffset(byteSlice, endOfDataSegmentOffset[0], endOfDataSegmentOffset[1]+1)
+	endOfDataSegmentInt, err := getOffsetAndConvertToInt(byteSlice, endOfDataSegmentOffset[0], endOfDataSegmentOffset[1]+1)
 	if err != nil {
 		return nil, err
 	}
 	beginningOfAnalysisSegmentOffset := constants.SegmentByteOffsets["FirstByteANALYSISSegment"]
-	beginningOfAnalysisSegmentInt, err := getOffset(byteSlice, beginningOfAnalysisSegmentOffset[0], beginningOfAnalysisSegmentOffset[1]+1)
+	beginningOfAnalysisSegmentInt, err := getOffsetAndConvertToInt(byteSlice, beginningOfAnalysisSegmentOffset[0], beginningOfAnalysisSegmentOffset[1]+1)
 	if err != nil {
 		return nil, err
 	}
 	endOfAnalysisSegmentOffset := constants.SegmentByteOffsets["LastByteANALYSISSegment"]
-	endOfAnalysisSegmentInt, err := getOffset(byteSlice, endOfAnalysisSegmentOffset[0], endOfAnalysisSegmentOffset[1]+1)
+	endOfAnalysisSegmentInt, err := getOffsetAndConvertToInt(byteSlice, endOfAnalysisSegmentOffset[0], endOfAnalysisSegmentOffset[1]+1)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func getTextSegment(byteSlice []byte, h *FCSHeader) (*FCSText, error) {
 	}, nil
 }
 
-func getOffset(b []byte, start int, end int) (*int, error) {
+func getOffsetAndConvertToInt(b []byte, start int, end int) (*int, error) {
 	ASCIIValue := strings.TrimSpace(string(b[start:end]))
 	intValue, err := strconv.Atoi(ASCIIValue)
 	if err != nil {
@@ -282,7 +282,7 @@ func determineByteOrder(order string) (binary.ByteOrder, error) {
 	case "4,3,2,1":
 		return binary.BigEndian, nil
 	default:
-		return nil, fmt.Errorf("unknown byte order %s", order)
+		return nil, fmt.Errorf("unsupported byte order %s", order)
 	}
 }
 
