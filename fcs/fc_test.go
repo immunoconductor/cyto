@@ -35,4 +35,7 @@ func TestFCS3_1(t *testing.T) {
 	data := fcs.ToTibble()
 	fmt.Println(data[0])
 
+	shortNamesData := fcs.ToShortNameTibble()
+	fmt.Println(shortNamesData[0])
+
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -36,8 +37,20 @@ type FCSSegment struct {
 type FCSText struct {
 	Bytes      []byte
 	Keywords   map[string]string
-	ShortNames []string
-	FullNames  []string
+	Parameters []FCSParameter
+}
+
+type FCSParameter struct {
+	ID int
+
+	// Required fields
+	PnB int    // Number of bits reserved for parameter number n.
+	PnE string // Amplification type for parameter n.
+	PnN string // Short name for parameter n.
+	PnR int    // Range for parameter number n.
+
+	// Optional
+	PnS string // name for parameter n.
 }
 
 type FCSData struct {
@@ -45,7 +58,7 @@ type FCSData struct {
 	Mode       string
 	DataType   string
 	Data       [][]float32
-	DataString [][]string
+	DataString [][]string // Data is dtring format
 }
 
 func NewFCS(s string) (*FCS, error) {
@@ -65,18 +78,16 @@ func NewFCS(s string) (*FCS, error) {
 		return nil, err
 	}
 
-	_ = validator.HasRequiredKeywords(t.Keywords)
-	shortNames, err := getShortNames(t.Keywords)
-	if err != nil {
-		return nil, err
+	valid := validator.HasRequiredKeywords(t.Keywords)
+	if !valid {
+		return nil, errors.New("missing required keywords")
 	}
-	t.ShortNames = shortNames
 
-	fullNames, err := getFullNames(t.Keywords)
+	parameters, err := getParameterMetadata(t.Keywords)
 	if err != nil {
 		return nil, err
 	}
-	t.FullNames = fullNames
+	t.Parameters = parameters
 
 	d, err := getDataSegment(t, b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1])
 	if err != nil {
@@ -96,7 +107,19 @@ func (f *FCS) ToCSV(path string) {
 }
 
 func (f *FCS) ToTibble() [][]string {
-	return append([][]string{f.TEXT.ShortNames}, f.DATA.DataString...)
+	var names []string
+	for _, v := range f.TEXT.Parameters {
+		names = append(names, v.PnN)
+	}
+	return append([][]string{names}, f.DATA.DataString...)
+}
+
+func (f *FCS) ToShortNameTibble() [][]string {
+	var shortnames []string
+	for _, v := range f.TEXT.Parameters {
+		shortnames = append(shortnames, v.PnS)
+	}
+	return append([][]string{shortnames}, f.DATA.DataString...)
 }
 
 func getHeader(byteSlice []byte) (*FCSHeader, error) {
@@ -265,8 +288,8 @@ func determineByteOrder(order string) (binary.ByteOrder, error) {
 	}
 }
 
-func getShortNames(keywords map[string]string) ([]string, error) {
-	var shortNames []string
+func getParameterMetadata(keywords map[string]string) ([]FCSParameter, error) {
+	var parameters []FCSParameter
 
 	np, err := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
 	if err != nil {
@@ -274,35 +297,35 @@ func getShortNames(keywords map[string]string) ([]string, error) {
 	}
 
 	for i := 1; i <= np; i++ {
-		for _, keywordFmt := range constants.TextSegmentRequiredParameterKeywords {
-			keyword := fmt.Sprintf(keywordFmt, i)
-			keywordValue, exists := keywords[keyword]
-			if !exists {
-				return nil, fmt.Errorf("missing required parameter keyword: %s", keyword)
-			}
-			if keywordFmt == "$P%dN" {
-				shortNames = append(shortNames, keywordValue)
-			}
+		pnNValue, pnNExists := keywords[fmt.Sprintf("$P%dN", i)]
+		pnBValue, pnBExists := keywords[fmt.Sprintf("$P%dB", i)]
+		pnE, pnEExists := keywords[fmt.Sprintf("$P%dE", i)]
+		pnRValue, pnRExists := keywords[fmt.Sprintf("$P%dR", i)]
+
+		if !pnNExists || !pnBExists || !pnEExists || !pnRExists {
+			return nil, fmt.Errorf("missing required parameter keyword: %s", fmt.Sprintf("$P%dN", i))
 		}
-	}
 
-	return shortNames, nil
-}
-
-func getFullNames(keywords map[string]string) ([]string, error) {
-	var names []string
-
-	np, err := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
-	if err != nil {
-		return nil, fmt.Errorf("could not convert %s to int", keywords["$PAR"])
-	}
-
-	for i := 1; i <= np; i++ {
-		for _, keywordFmt := range constants.TextSegmentParameterNames {
-			keyword := fmt.Sprintf(keywordFmt, i)
-			names = append(names, keywords[keyword])
+		pnB, err := strconv.Atoi(pnBValue)
+		if err != nil {
+			return nil, err
 		}
+		pnR, err := strconv.Atoi(pnRValue)
+		if err != nil {
+			return nil, err
+		}
+
+		parameter := FCSParameter{
+			ID:  i,
+			PnN: pnNValue,
+			PnS: keywords[fmt.Sprintf("$P%dS", i)],
+			PnB: pnB,
+			PnE: pnE,
+			PnR: pnR,
+		}
+		parameters = append(parameters, parameter)
+
 	}
 
-	return names, nil
+	return parameters, nil
 }
