@@ -4,18 +4,64 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/immunoconductor/cyto/fcs/constants"
-	"github.com/immunoconductor/cyto/fcs/models"
 	"github.com/immunoconductor/cyto/fcs/parser"
+	"github.com/immunoconductor/cyto/internal/csv_writer"
 	"github.com/immunoconductor/cyto/internal/validator"
 )
 
-func NewFCS(s string) (*models.FCS, error) {
+type FCS struct {
+	HEADER FCSHeader
+	TEXT   FCSText
+	DATA   FCSData
+}
+
+type FCSHeader struct {
+	Bytes    []byte
+	Version  string
+	Segments map[constants.SegmentType]FCSSegment
+}
+
+type FCSSegment struct {
+	Type  constants.SegmentType
+	Start int
+	End   int
+}
+
+type FCSText struct {
+	Bytes      []byte
+	Keywords   map[string]string
+	Parameters []FCSParameter
+}
+
+type FCSParameter struct {
+	ID int
+
+	// Required fields
+	PnB int    // Number of bits reserved for parameter number n.
+	PnE string // Amplification type for parameter n.
+	PnN string // Short name for parameter n.
+	PnR int    // Range for parameter number n.
+
+	// Optional
+	PnS string // name for parameter n.
+}
+
+type FCSData struct {
+	Bytes      []byte
+	Mode       string
+	DataType   string
+	Data       [][]float32
+	DataString [][]string // Data is dtring format
+}
+
+func NewFCS(s string) (*FCS, error) {
 	parser := parser.NewFCSParser(s)
 	b, err := parser.Read()
 	if err != nil {
@@ -32,21 +78,51 @@ func NewFCS(s string) (*models.FCS, error) {
 		return nil, err
 	}
 
-	_ = validator.HasRequiredKeywords(t.Keywords)
+	valid := validator.HasRequiredKeywords(t.Keywords)
+	if !valid {
+		return nil, errors.New("missing required keywords")
+	}
+
+	parameters, err := getParameterMetadata(t.Keywords)
+	if err != nil {
+		return nil, err
+	}
+	t.Parameters = parameters
 
 	d, err := getDataSegment(t, b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1])
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.FCS{
+	return &FCS{
 		HEADER: *h,
 		TEXT:   *t,
 		DATA:   *d,
 	}, nil
 }
 
-func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
+func (f *FCS) ToCSV(path string) {
+	writer := csv_writer.NewCSVWriter(f.ToTibble(), path)
+	writer.Write()
+}
+
+func (f *FCS) ToTibble() [][]string {
+	var names []string
+	for _, v := range f.TEXT.Parameters {
+		names = append(names, v.PnN)
+	}
+	return append([][]string{names}, f.DATA.DataString...)
+}
+
+func (f *FCS) ToShortNameTibble() [][]string {
+	var shortnames []string
+	for _, v := range f.TEXT.Parameters {
+		shortnames = append(shortnames, v.PnS)
+	}
+	return append([][]string{shortnames}, f.DATA.DataString...)
+}
+
+func getHeader(byteSlice []byte) (*FCSHeader, error) {
 	versionByteOffset := constants.SegmentByteOffsets["Version"]
 	version := strings.TrimSpace(string(byteSlice[versionByteOffset[0] : versionByteOffset[1]+1]))
 
@@ -83,7 +159,7 @@ func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
 		return nil, err
 	}
 
-	var segments = map[constants.SegmentType]models.FCSSegment{
+	var segments = map[constants.SegmentType]FCSSegment{
 		constants.TEXT: {
 			Type:  constants.TEXT,
 			Start: *beginningOfTextSegmentInt,
@@ -110,14 +186,14 @@ func getHeader(byteSlice []byte) (*models.FCSHeader, error) {
 		headerBytes = append(headerBytes, userDefinedSegments...)                                                                    // including any user defined segments
 	}
 
-	return &models.FCSHeader{
+	return &FCSHeader{
 		Bytes:    headerBytes,
 		Version:  version,
 		Segments: segments,
 	}, nil
 }
 
-func getTextSegment(byteSlice []byte, h *models.FCSHeader) (*models.FCSText, error) {
+func getTextSegment(byteSlice []byte, h *FCSHeader) (*FCSText, error) {
 	textSegment := h.Segments["TEXT"]
 
 	textSegmentBytes := byteSlice[textSegment.Start : textSegment.End+1]
@@ -139,7 +215,7 @@ func getTextSegment(byteSlice []byte, h *models.FCSHeader) (*models.FCSText, err
 		Keywords[strings.TrimSpace(textSegmentSlice[i])] = strings.TrimSpace(textSegmentSlice[i+1])
 	}
 
-	return &models.FCSText{
+	return &FCSText{
 		Bytes:    textSegmentBytes,
 		Keywords: Keywords,
 	}, nil
@@ -154,8 +230,8 @@ func getOffset(b []byte, start int, end int) (*int, error) {
 	return &intValue, nil
 }
 
-func getDataSegment(t *models.FCSText, byteSlice []byte) (*models.FCSData, error) {
-	data := models.FCSData{
+func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
+	data := FCSData{
 		Bytes:    byteSlice,
 		Mode:     strings.TrimSpace(t.Keywords["$MODE"]),
 		DataType: strings.TrimSpace(t.Keywords["$DATATYPE"]),
@@ -184,16 +260,20 @@ func getDataSegment(t *models.FCSText, byteSlice []byte) (*models.FCSData, error
 	rows := ne
 	cols := np
 	twoDimFloat32Data := make([][]float32, rows)
+	twoDimString2Data := make([][]string, rows)
 
 	// TODO: refactor
 	for i := range twoDimFloat32Data {
 		twoDimFloat32Data[i] = make([]float32, cols)
+		twoDimString2Data[i] = make([]string, cols)
+
 		for j := range twoDimFloat32Data[i] {
 			twoDimFloat32Data[i][j] = float32Data[i*cols+j]
+			twoDimString2Data[i][j] = fmt.Sprintf("%f", float32Data[i*cols+j])
 		}
 	}
-
 	data.Data = twoDimFloat32Data
+	data.DataString = twoDimString2Data
 	return &data, nil
 }
 
@@ -206,4 +286,46 @@ func determineByteOrder(order string) (binary.ByteOrder, error) {
 	default:
 		return nil, fmt.Errorf("unknown byte order %s", order)
 	}
+}
+
+func getParameterMetadata(keywords map[string]string) ([]FCSParameter, error) {
+	var parameters []FCSParameter
+
+	np, err := strconv.Atoi(strings.TrimSpace(keywords["$PAR"]))
+	if err != nil {
+		return nil, fmt.Errorf("could not convert %s to int", keywords["$PAR"])
+	}
+
+	for i := 1; i <= np; i++ {
+		pnNValue, pnNExists := keywords[fmt.Sprintf("$P%dN", i)]
+		pnBValue, pnBExists := keywords[fmt.Sprintf("$P%dB", i)]
+		pnE, pnEExists := keywords[fmt.Sprintf("$P%dE", i)]
+		pnRValue, pnRExists := keywords[fmt.Sprintf("$P%dR", i)]
+
+		if !pnNExists || !pnBExists || !pnEExists || !pnRExists {
+			return nil, fmt.Errorf("missing required parameter keyword: %s", fmt.Sprintf("$P%dN", i))
+		}
+
+		pnB, err := strconv.Atoi(pnBValue)
+		if err != nil {
+			return nil, err
+		}
+		pnR, err := strconv.Atoi(pnRValue)
+		if err != nil {
+			return nil, err
+		}
+
+		parameter := FCSParameter{
+			ID:  i,
+			PnN: pnNValue,
+			PnS: keywords[fmt.Sprintf("$P%dS", i)],
+			PnB: pnB,
+			PnE: pnE,
+			PnR: pnR,
+		}
+		parameters = append(parameters, parameter)
+
+	}
+
+	return parameters, nil
 }

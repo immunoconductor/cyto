@@ -16,6 +16,9 @@ func TestFCS3_0(t *testing.T) {
 	fmt.Println(fcs.HEADER.Version)
 	// fmt.Println(fcs.HEADER.Segments)
 	// fmt.Println(fcs.TEXT.Keywords)
+	// fcs.ToCSV("./parser/test-data/test.csv")
+	data := fcs.ToTibble()
+	fmt.Println(data[0])
 
 }
 
@@ -28,5 +31,11 @@ func TestFCS3_1(t *testing.T) {
 	fmt.Println(fcs.HEADER.Version)
 	// fmt.Println(fcs.HEADER.Segments)
 	// fmt.Println(fcs.TEXT.Keywords)
+
+	data := fcs.ToTibble()
+	fmt.Println(data[0])
+
+	shortNamesData := fcs.ToShortNameTibble()
+	fmt.Println(shortNamesData[0])
 
 }

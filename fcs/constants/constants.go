@@ -42,13 +42,6 @@ const (
 	OTHER    SegmentType = "OTHER"
 )
 
-var TextSegmentRequiredParameterKeywords = []string{
-	"$P%dB",
-	"$P%dE",
-	"$P%dN",
-	"$P%dR",
-}
-
 var TextSegmentRequiredKeywords = []TextSegmentKeyword{
 	"$BEGINANALYSIS",
 	"$BEGINDATA",

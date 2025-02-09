@@ -22,5 +22,4 @@ func (p *FCSParser) Read() ([]byte, error) {
 	}
 
 	return byteSlice, nil
-
 }
