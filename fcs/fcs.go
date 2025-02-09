@@ -211,7 +211,6 @@ func getTextSegment(byteSlice []byte, h *FCSHeader) (*FCSText, error) {
 	textSegmentSlice := segment[0][1 : len(segment[0])-1]
 	var Keywords = make(map[string]string)
 	for i := 0; i < len(textSegmentSlice); i = i + 2 {
-		// fmt.Printf("%s =>  %s\n", recSlice[i], recSlice[i+1])
 		Keywords[strings.TrimSpace(textSegmentSlice[i])] = strings.TrimSpace(textSegmentSlice[i+1])
 	}
 
@@ -241,17 +240,16 @@ func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
 	ne, _ := strconv.Atoi(strings.TrimSpace(t.Keywords["$TOT"]))
 	byteOrder := strings.TrimSpace(t.Keywords["$BYTEORD"])
 
-	// fmt.Println(byteOrder)
 	order, err := determineByteOrder(byteOrder)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(ne, " x ", np)
+	fmt.Println(ne, " cells", " x ", np, " observations")
 
 	float32Data := make([]float32, np*ne)
 	r := bytes.NewReader(byteSlice)
-	err = binary.Read(r, order, &float32Data) // determine endian
+	err = binary.Read(r, order, &float32Data)
 	if err != nil {
 		log.Fatal("binary.Read failed ", err)
 		return nil, err

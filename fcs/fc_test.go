@@ -8,6 +8,21 @@ import (
 )
 
 func TestFCS3_0(t *testing.T) {
+	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0.fcs")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	fmt.Println(fcs.HEADER.Version)
+	// fmt.Println(fcs.HEADER.Segments)
+	// fmt.Println(fcs.TEXT.Keywords)
+	// fcs.ToCSV("./parser/test-data/test.csv")
+	data := fcs.ToTibble()
+	fmt.Println(data[0])
+
+}
+
+func TestFCS3_0_2(t *testing.T) {
 	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0_2.fcs")
 	if err != nil {
 		t.Errorf(err.Error())
