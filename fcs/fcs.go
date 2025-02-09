@@ -249,7 +249,7 @@ func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
 
 	float32Data := make([]float32, np*ne)
 	r := bytes.NewReader(byteSlice)
-	err = binary.Read(r, order, &float32Data) // determine endian
+	err = binary.Read(r, order, &float32Data)
 	if err != nil {
 		log.Fatal("binary.Read failed ", err)
 		return nil, err
