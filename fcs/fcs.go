@@ -122,6 +122,18 @@ func (f *FCS) ToShortNameTibble() [][]string {
 	return append([][]string{shortnames}, f.DATA.DataString...)
 }
 
+func (f *FCS) Names() []string {
+	var names []string
+	for _, v := range f.TEXT.Parameters {
+		names = append(names, v.PnN)
+	}
+	return names
+}
+
+func (f *FCS) Keywords() map[string]string {
+	return f.TEXT.Keywords
+}
+
 func getHeader(byteSlice []byte) (*FCSHeader, error) {
 	versionByteOffset := constants.SegmentByteOffsets["Version"]
 	version := strings.TrimSpace(string(byteSlice[versionByteOffset[0] : versionByteOffset[1]+1]))
