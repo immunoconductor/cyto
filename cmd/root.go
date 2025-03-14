@@ -5,17 +5,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	// Used for flags.
-	// cfgFile     string
-	// userLicense string
-
-	rootCmd = &cobra.Command{
-		Use:   "cyto",
-		Short: "cyto",
-		Long:  `Cyto is a CLI library for the analysis of CyTOF data.`,
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:   "cyto",
+	Short: "cyto",
+	Long:  `Cyto is a CLI library for the analysis of CyTOF data.`,
+}
 
 // Execute executes the root command.
 func Execute() error {
