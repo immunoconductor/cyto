@@ -44,13 +44,15 @@ func TestFCS3_1(t *testing.T) {
 	}
 
 	fmt.Println(fcs.HEADER.Version)
-	// fmt.Println(fcs.HEADER.Segments)
-	// fmt.Println(fcs.TEXT.Keywords)
+	fmt.Println(fcs.HEADER.Segments)
+	fmt.Println(fcs.TEXT.Keywords)
 
 	data := fcs.ToTibble()
 	fmt.Println(data[0])
 
 	shortNamesData := fcs.ToShortNameTibble()
 	fmt.Println(shortNamesData[0])
+
+	fmt.Println(fcs.Names())
 
 }
