@@ -1,3 +1,4 @@
 fcs/parser/test-data/*
 .DS_Store
 cyto
+*.csv
