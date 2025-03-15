@@ -15,7 +15,7 @@ func init() {
 	FcsCmd.Flags().StringVarP(&InputFile, "input", "i", "", "input file to read from")
 	FcsCmd.Flags().StringVarP(&OutputFile, "output", "o", "", "output file to write to")
 	FcsCmd.MarkFlagsRequiredTogether("input", "output")
-	FcsCmd.Flags().BoolVarP(&ShortNames, "shortnames", "s", false, "shortnames output")
+	FcsCmd.Flags().BoolVarP(&ShortNames, "shortnames", "s", false, "whether the output file should contain names or shortnames as fields, to be used with input and output flags")
 	FcsCmd.AddCommand(VersionCmd)
 }
 
