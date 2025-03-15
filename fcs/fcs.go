@@ -58,7 +58,7 @@ type FCSData struct {
 	Mode       string
 	DataType   string
 	Data       [][]float32
-	DataString [][]string // Data is dtring format
+	DataString [][]string // Data is string format
 }
 
 func NewFCS(s string) (*FCS, error) {
