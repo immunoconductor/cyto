@@ -47,5 +47,6 @@ var FcsCmd = &cobra.Command{
 		} else {
 			fcs.ToCSV(outputFile)
 		}
+		fmt.Printf("output available at %s\n", outputFile)
 	},
 }
