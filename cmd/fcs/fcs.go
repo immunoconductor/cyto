@@ -21,8 +21,8 @@ func init() {
 
 var FcsCmd = &cobra.Command{
 	Use:   "fcs",
-	Short: "Read fcs files to csv",
-	Long:  `Read fcs files to csv (as defined by the flow cytometry data file standard)`,
+	Short: "Convert fcs files to csv",
+	Long:  `Convert fcs files to csv (as defined by the flow cytometry data file standard)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("fcs is a Cyto library for reading Flow Cytometry Standard (FCS) data")
 
