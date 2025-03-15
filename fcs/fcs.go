@@ -262,7 +262,7 @@ func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
 		return nil, err
 	}
 
-	fmt.Println(ne, " cells", " x ", np, " observations")
+	fmt.Println(ne, " cells", " x ", np, " observables")
 
 	float32Data := make([]float32, np*ne)
 	r := bytes.NewReader(byteSlice)
