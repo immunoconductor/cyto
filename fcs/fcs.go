@@ -106,6 +106,11 @@ func (f *FCS) ToCSV(path string) {
 	writer.Write()
 }
 
+func (f *FCS) ToShortNameCSV(path string) {
+	writer := csv_writer.NewCSVWriter(f.ToShortNameTibble(), path)
+	writer.Write()
+}
+
 func (f *FCS) ToTibble() [][]string {
 	var names []string
 	for _, v := range f.TEXT.Parameters {
@@ -257,7 +262,7 @@ func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
 		return nil, err
 	}
 
-	fmt.Println(ne, " cells", " x ", np, " observations")
+	fmt.Println(ne, " cells", " x ", np, " observables")
 
 	float32Data := make([]float32, np*ne)
 	r := bytes.NewReader(byteSlice)
