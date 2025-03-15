@@ -106,6 +106,11 @@ func (f *FCS) ToCSV(path string) {
 	writer.Write()
 }
 
+func (f *FCS) ToShortNameCSV(path string) {
+	writer := csv_writer.NewCSVWriter(f.ToShortNameTibble(), path)
+	writer.Write()
+}
+
 func (f *FCS) ToTibble() [][]string {
 	var names []string
 	for _, v := range f.TEXT.Parameters {
