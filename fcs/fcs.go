@@ -62,7 +62,7 @@ type FCSData struct {
 	DataString [][]string // Data is string format
 }
 
-func NewFCS(s string, transform bool) (*FCS, error) {
+func Read(s string, transform bool) (*FCS, error) {
 	parser := parser.NewFCSParser(s)
 	b, err := parser.Read()
 	if err != nil {

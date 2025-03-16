@@ -8,7 +8,7 @@ import (
 )
 
 func TestFCS3_0(t *testing.T) {
-	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0.fcs", false)
+	fcs, err := fcs.Read("./parser/test-data/fcs3.0.fcs", false)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -23,7 +23,7 @@ func TestFCS3_0(t *testing.T) {
 }
 
 func TestFCS3_0_2(t *testing.T) {
-	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.0_2.fcs", false)
+	fcs, err := fcs.Read("./parser/test-data/fcs3.0_2.fcs", false)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -38,7 +38,7 @@ func TestFCS3_0_2(t *testing.T) {
 }
 
 func TestFCS3_1(t *testing.T) {
-	fcs, err := fcs.NewFCS("./parser/test-data/fcs3.1.fcs", false)
+	fcs, err := fcs.Read("./parser/test-data/fcs3.1.fcs", false)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

@@ -49,14 +49,14 @@ var FcsCmd = &cobra.Command{
 			return
 		}
 
-		fcs, err := fcs.NewFCS(inputFile, transform)
+		fcsData, err := fcs.Read(inputFile, transform)
 		if err != nil {
 			return
 		}
 		if shortnames {
-			fcs.ToShortNameCSV(outputFile)
+			fcsData.ToShortNameCSV(outputFile)
 		} else {
-			fcs.ToCSV(outputFile)
+			fcsData.ToCSV(outputFile)
 		}
 		_ = bar.Add(1)
 		fmt.Printf("output available at %s\n", outputFile)
