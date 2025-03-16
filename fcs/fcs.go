@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/immunoconductor/cyto/fcs/constants"
-	"github.com/immunoconductor/cyto/fcs/parser"
+	"github.com/immunoconductor/cyto/fcs/filereader"
 	"github.com/immunoconductor/cyto/internal/csv_writer"
 	"github.com/immunoconductor/cyto/internal/transform/cytof"
 	"github.com/immunoconductor/cyto/internal/validator"
@@ -63,12 +63,13 @@ type FCSData struct {
 }
 
 func Read(s string, transform bool) (*FCS, error) {
-	parser := parser.NewFCSParser(s)
-	b, err := parser.Read()
+	f := filereader.NewFCSFileReader(s)
+	b, err := f.Read()
 	if err != nil {
 		return nil, err
 	}
 
+	// parse file contents
 	h, err := getHeader(b)
 	if err != nil {
 		return nil, err
