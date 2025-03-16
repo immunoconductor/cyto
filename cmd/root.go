@@ -8,7 +8,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "cyto",
 	Short: "cyto",
-	Long:  `Cyto is a CLI library for the analysis of CyTOF data.`,
+	Long:  `Cyto is a CLI library for the analysis of cytometry data.`,
 }
 
 // Execute executes the root command.

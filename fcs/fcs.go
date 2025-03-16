@@ -286,12 +286,12 @@ func getDataSegment(t *FCSText, byteSlice []byte, transform bool) (*FCSData, err
 		twoDimString2Data[i] = make([]string, cols)
 
 		for j := range twoDimFloat32Data[i] {
-			markerValue := float32Data[i*cols+j]
+			dataValue := float32Data[i*cols+j]
 			if transform {
-				markerValue = float32(cytof.Arcsinh(float64(markerValue), 0, 0.2))
+				dataValue = float32(cytof.Arcsinh(float64(dataValue), 0, 0.2))
 			}
-			twoDimFloat32Data[i][j] = markerValue
-			twoDimString2Data[i][j] = fmt.Sprintf("%f", markerValue)
+			twoDimFloat32Data[i][j] = dataValue
+			twoDimString2Data[i][j] = fmt.Sprintf("%f", dataValue)
 		}
 	}
 	data.Data = twoDimFloat32Data
