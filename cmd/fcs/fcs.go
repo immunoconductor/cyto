@@ -2,6 +2,8 @@ package fcs
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/immunoconductor/cyto/fcs"
 	"github.com/schollz/progressbar/v3"
@@ -59,6 +61,25 @@ var FcsCmd = &cobra.Command{
 			fcsData.ToCSV(outputFile)
 		}
 		_ = bar.Add(1)
-		fmt.Printf("Output location: %s\n", outputFile)
+
+		fileInfo, err := os.Stat(outputFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Output location: %s (%v)\n", outputFile, HumanReadableSize(fileInfo.Size()))
 	},
+}
+
+func HumanReadableSize(size int64) string {
+	const unit = 1024
+	if size < unit {
+		return fmt.Sprintf("%d B", size)
+	}
+	div, exp := int64(unit), 0
+	for n := size / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	units := []string{"KB", "MB", "GB", "TB", "PB", "EB"}
+	return fmt.Sprintf("%.2f %s", float64(size)/float64(div), units[exp])
 }
