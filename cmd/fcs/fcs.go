@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/immunoconductor/cyto/fcs"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,7 @@ var FcsCmd = &cobra.Command{
 	Long:  `Convert fcs files to csv (as defined by the flow cytometry data file standard)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("fcs is a Cyto library for reading Flow Cytometry Standard (FCS) data")
+		bar := progressbar.Default(int64(1))
 
 		inputFile, err := cmd.Flags().GetString("input")
 		if err != nil {
@@ -56,6 +58,7 @@ var FcsCmd = &cobra.Command{
 		} else {
 			fcs.ToCSV(outputFile)
 		}
+		_ = bar.Add(1)
 		fmt.Printf("output available at %s\n", outputFile)
 	},
 }
