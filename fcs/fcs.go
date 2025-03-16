@@ -51,23 +51,28 @@ type FCSData struct {
 	DataString [][]string // Data is string format
 }
 
-func Read(s string, transform bool) (*FCS, error) {
-	f := filereader.NewFCSFileReader(s)
-	b, err := f.Read()
+func Read(inputFilePath string, transform bool) (*FCS, error) {
+	f := filereader.NewFCSFileReader(inputFilePath)
+	fcsFileBytes, err := f.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	return parse(b, transform)
+	parser, err := NewFCSParser(fcsFileBytes, transform)
+	if err != nil {
+		return nil, err
+	}
+
+	return parser.Parse()
 }
 
-func (f *FCS) ToCSV(path string) {
-	writer := csv_writer.NewCSVWriter(f.ToTibble(), path)
+func (f *FCS) ToCSV(outputFilePath string) {
+	writer := csv_writer.NewCSVWriter(f.ToTibble(), outputFilePath)
 	writer.Write()
 }
 
-func (f *FCS) ToShortNameCSV(path string) {
-	writer := csv_writer.NewCSVWriter(f.ToShortNameTibble(), path)
+func (f *FCS) ToShortNameCSV(outputFilePath string) {
+	writer := csv_writer.NewCSVWriter(f.ToShortNameTibble(), outputFilePath)
 	writer.Write()
 }
 

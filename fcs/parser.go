@@ -15,13 +15,24 @@ import (
 	"github.com/immunoconductor/cyto/internal/validator"
 )
 
-func parse(b []byte, transform bool) (*FCS, error) {
-	h, err := getHeader(b)
+type FCSParser struct {
+	FileBytes []byte
+	Transform bool
+}
+
+func NewFCSParser(b []byte, transform bool) (*FCSParser, error) {
+	return &FCSParser{b, transform}, nil
+}
+
+func (p *FCSParser) Parse() (*FCS, error) {
+	transform := p.Transform
+	fcsFileBytes := p.FileBytes
+	h, err := getHeader(p.FileBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	t, err := getTextSegment(b, h)
+	t, err := getTextSegment(fcsFileBytes, h)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +49,7 @@ func parse(b []byte, transform bool) (*FCS, error) {
 	t.Parameters = parameters
 
 	d, err := getDataSegment(t,
-		b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1],
+		fcsFileBytes[h.Segments["DATA"].Start:h.Segments["DATA"].End+1],
 		transform)
 	if err != nil {
 		return nil, err
