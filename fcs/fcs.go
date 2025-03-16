@@ -13,6 +13,7 @@ import (
 	"github.com/immunoconductor/cyto/fcs/constants"
 	"github.com/immunoconductor/cyto/fcs/parser"
 	"github.com/immunoconductor/cyto/internal/csv_writer"
+	"github.com/immunoconductor/cyto/internal/transform/cytof"
 	"github.com/immunoconductor/cyto/internal/validator"
 )
 
@@ -61,7 +62,7 @@ type FCSData struct {
 	DataString [][]string // Data is string format
 }
 
-func NewFCS(s string) (*FCS, error) {
+func NewFCS(s string, transform bool) (*FCS, error) {
 	parser := parser.NewFCSParser(s)
 	b, err := parser.Read()
 	if err != nil {
@@ -89,7 +90,9 @@ func NewFCS(s string) (*FCS, error) {
 	}
 	t.Parameters = parameters
 
-	d, err := getDataSegment(t, b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1])
+	d, err := getDataSegment(t,
+		b[h.Segments["DATA"].Start:h.Segments["DATA"].End+1],
+		transform)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +249,7 @@ func getOffsetAndConvertToInt(b []byte, start int, end int) (*int, error) {
 	return &intValue, nil
 }
 
-func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
+func getDataSegment(t *FCSText, byteSlice []byte, transform bool) (*FCSData, error) {
 	data := FCSData{
 		Bytes:    byteSlice,
 		Mode:     strings.TrimSpace(t.Keywords["$MODE"]),
@@ -283,8 +286,12 @@ func getDataSegment(t *FCSText, byteSlice []byte) (*FCSData, error) {
 		twoDimString2Data[i] = make([]string, cols)
 
 		for j := range twoDimFloat32Data[i] {
-			twoDimFloat32Data[i][j] = float32Data[i*cols+j]
-			twoDimString2Data[i][j] = fmt.Sprintf("%f", float32Data[i*cols+j])
+			markerValue := float32Data[i*cols+j]
+			if transform {
+				markerValue = float32(cytof.Arcsinh(float64(markerValue), 0, 0.2))
+			}
+			twoDimFloat32Data[i][j] = markerValue
+			twoDimString2Data[i][j] = fmt.Sprintf("%f", markerValue)
 		}
 	}
 	data.Data = twoDimFloat32Data
