@@ -7,15 +7,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var InputFile string
-var OutputFile string
-var ShortNames bool
+var (
+	InputFile  string
+	OutputFile string
+	ShortNames bool
+	Transform  bool
+)
 
 func init() {
 	FcsCmd.Flags().StringVarP(&InputFile, "input", "i", "", "input file to read from")
 	FcsCmd.Flags().StringVarP(&OutputFile, "output", "o", "", "output file to write to")
 	FcsCmd.MarkFlagsRequiredTogether("input", "output")
-	FcsCmd.Flags().BoolVarP(&ShortNames, "shortnames", "s", false, "whether the output file should contain names or shortnames as fields, to be used with input and output flags")
+	FcsCmd.Flags().BoolVarP(&ShortNames, "shortnames", "s", false, "whether the output file should contain names or friendly names (shortnames) as fields, to be used with input and output flags")
+	FcsCmd.Flags().BoolVarP(&Transform, "transform", "t", false, "whether to apply asinh transformation to the data (cofactor of 5 is used)")
 	FcsCmd.AddCommand(VersionCmd)
 }
 
@@ -38,7 +42,12 @@ var FcsCmd = &cobra.Command{
 		if err != nil {
 			return
 		}
-		fcs, err := fcs.NewFCS(inputFile)
+		transform, err := cmd.Flags().GetBool("transform")
+		if err != nil {
+			return
+		}
+
+		fcs, err := fcs.NewFCS(inputFile, transform)
 		if err != nil {
 			return
 		}
