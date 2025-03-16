@@ -59,6 +59,6 @@ var FcsCmd = &cobra.Command{
 			fcsData.ToCSV(outputFile)
 		}
 		_ = bar.Add(1)
-		fmt.Printf("output available at %s\n", outputFile)
+		fmt.Printf("Output location: %s\n", outputFile)
 	},
 }

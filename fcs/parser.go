@@ -121,7 +121,8 @@ func getHeader(byteSlice []byte) (*FCSHeader, error) {
 
 	userDefinedSegments := byteSlice[endOfAnalysisSegmentOffset[1]+1 : *beginningOfTextSegmentInt]
 	if len(userDefinedSegments) > 0 {
-		fmt.Println("user defined segments exist in file")
+		fmt.Println()
+		fmt.Println("[ User defined segments exist in file ]")
 		fmt.Printf("offset to user defined OTHER segments: %s, length: %v\n", string(userDefinedSegments), len(userDefinedSegments)) // offset to user defined OTHER segments
 		headerBytes = append(headerBytes, userDefinedSegments...)                                                                    // including any user defined segments
 	}
@@ -185,7 +186,7 @@ func getDataSegment(t *FCSText, byteSlice []byte, transform bool) (*FCSData, err
 		return nil, err
 	}
 
-	fmt.Println(ne, " cells", " x ", np, " observables")
+	fmt.Println("[ ", ne, " cells", " x ", np, " observables ]")
 
 	float32Data := make([]float32, np*ne)
 	r := bytes.NewReader(byteSlice)
