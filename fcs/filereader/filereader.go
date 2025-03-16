@@ -1,4 +1,4 @@
-package parser
+package filereader
 
 import (
 	"os"
@@ -11,7 +11,7 @@ type FCSParser struct {
 	Contents []byte
 }
 
-func NewFCSParser(path string) reader.Reader {
+func NewFCSFileReader(path string) reader.Reader {
 	return &FCSParser{FilePath: path}
 }
 

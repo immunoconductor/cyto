@@ -1,4 +1,4 @@
-fcs/parser/test-data/*
+fcs/filereader/test-data/*
 .DS_Store
 cyto
 *.csv
