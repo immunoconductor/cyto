@@ -66,11 +66,11 @@ var FcsCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Output location: %s (%v)\n", outputFile, HumanReadableSize(fileInfo.Size()))
+		fmt.Printf("Output location: %s (%v)\n", outputFile, humanReadableSize(fileInfo.Size()))
 	},
 }
 
-func HumanReadableSize(size int64) string {
+func humanReadableSize(size int64) string {
 	const unit = 1024
 	if size < unit {
 		return fmt.Sprintf("%d B", size)
