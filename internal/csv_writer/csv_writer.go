@@ -30,6 +30,9 @@ func (w *CSVWriter) Write() error {
 	defer writer.Flush()
 
 	// Write all rows at once
-	writer.WriteAll(w.Data)
+	err = writer.WriteAll(w.Data)
+	if err != nil {
+		return err
+	}
 	return nil
 }

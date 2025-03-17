@@ -66,14 +66,14 @@ func Read(inputFilePath string, transform bool) (*FCS, error) {
 	return parser.Parse()
 }
 
-func (f *FCS) ToCSV(outputFilePath string) {
+func (f *FCS) ToCSV(outputFilePath string) error {
 	writer := csv_writer.NewCSVWriter(f.ToTibble(), outputFilePath)
-	writer.Write()
+	return writer.Write()
 }
 
-func (f *FCS) ToShortNameCSV(outputFilePath string) {
+func (f *FCS) ToShortNameCSV(outputFilePath string) error {
 	writer := csv_writer.NewCSVWriter(f.ToShortNameTibble(), outputFilePath)
-	writer.Write()
+	return writer.Write()
 }
 
 func (f *FCS) ToTibble() [][]string {
