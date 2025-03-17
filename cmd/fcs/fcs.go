@@ -36,24 +36,24 @@ var FcsCmd = &cobra.Command{
 
 		inputFile, err := cmd.Flags().GetString("input")
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 		outputFile, err := cmd.Flags().GetString("output")
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 		shortnames, err := cmd.Flags().GetBool("shortnames")
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 		transform, err := cmd.Flags().GetBool("transform")
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 
 		fcsData, err := fcs.Read(inputFile, transform)
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 		if shortnames {
 			fcsData.ToShortNameCSV(outputFile)
