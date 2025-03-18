@@ -33,6 +33,7 @@ func (h *FCSHeader) Sanitize(t *FCSText) error {
 			return err
 		}
 		h.Segments["DATA"] = FCSSegment{constants.TEXT, dataStart, dataEnd}
+	}
 
 	return nil
 
