@@ -28,7 +28,7 @@ func (h *FCSHeader) Sanitize(t *FCSText) error {
 		if err != nil {
 			return err
 		}
-		dataEnd, _ := strconv.Atoi(keywords["$ENDDATA"])
+		dataEnd, err := strconv.Atoi(keywords["$ENDDATA"])
 		if err != nil {
 			return err
 		}
