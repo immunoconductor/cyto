@@ -48,6 +48,11 @@ func (p *FCSParser) Parse() (*FCS, error) {
 	}
 	t.Parameters = parameters
 
+	err = h.Sanitize(t)
+	if err != nil {
+		return nil, err
+	}
+
 	d, err := getDataSegment(t,
 		fcsFileBytes[h.Segments["DATA"].Start:h.Segments["DATA"].End+1],
 		transform)
@@ -188,6 +193,9 @@ func getDataSegment(t *FCSText, byteSlice []byte, transform bool) (*FCSData, err
 
 	fmt.Println("[ ", ne, " cells", " x ", np, " observables ]")
 
+	if len(byteSlice) < 4 {
+		return nil, fmt.Errorf("not enough bytes for float32: got %d, need 4", len(byteSlice))
+	}
 	float32Data := make([]float32, np*ne)
 	r := bytes.NewReader(byteSlice)
 	err = binary.Read(r, order, &float32Data)
