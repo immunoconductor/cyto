@@ -1,6 +1,8 @@
 package fcs
 
 import (
+	"strconv"
+
 	"github.com/immunoconductor/cyto/fcs/constants"
 	"github.com/immunoconductor/cyto/fcs/filereader"
 	"github.com/immunoconductor/cyto/internal/csv_writer"
@@ -16,6 +18,29 @@ type FCSHeader struct {
 	Bytes    []byte
 	Version  string
 	Segments map[constants.SegmentType]FCSSegment
+}
+
+func (h *FCSHeader) Sanitize(t *FCSText) error {
+	keywords := t.Keywords
+
+	if h.Segments["DATA"].Start == 0 && h.Segments["DATA"].End == 0 {
+		dataStart, err := strconv.Atoi(keywords["$BEGINDATA"])
+		if err != nil {
+			return err
+		}
+		dataEnd, _ := strconv.Atoi(keywords["$ENDDATA"])
+		if err != nil {
+			return err
+		}
+		h.Segments["DATA"] = FCSSegment{
+			constants.TEXT,
+			dataStart,
+			dataEnd,
+		}
+	}
+
+	return nil
+
 }
 
 type FCSSegment struct {
