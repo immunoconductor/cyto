@@ -10,6 +10,10 @@
 
 ## 🛠️ Installation
 
+### Prerequisites
+
+- [Go](https://go.dev/doc/install)
+
 ### Using Go Get
 
 ```bash
