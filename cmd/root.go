@@ -18,4 +18,5 @@ func Execute() error {
 
 func init() {
 	rootCmd.AddCommand(fcs.FcsCmd)
+	rootCmd.AddCommand(fcs.VersionCmd)
 }
