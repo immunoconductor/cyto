@@ -14,6 +14,6 @@ var VersionCmd = &cobra.Command{
 	Short: "Print the version number of the fcs library",
 	Long:  `Print the version number of the fcs library`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("fcs: Flow Cytometry Standard (FCS) library v0.1")
+		fmt.Println("cyto version cyto1.0.0")
 	},
 }
