@@ -23,7 +23,6 @@ func init() {
 	FcsCmd.MarkFlagsRequiredTogether("input", "output")
 	FcsCmd.Flags().BoolVarP(&ShortNames, "shortnames", "s", false, "whether the output file should contain names or friendly names (shortnames) as fields, to be used with input and output flags")
 	FcsCmd.Flags().BoolVarP(&Transform, "transform", "t", false, "whether to apply asinh transformation to the data (cofactor of 5 is used)")
-	FcsCmd.AddCommand(VersionCmd)
 }
 
 var FcsCmd = &cobra.Command{

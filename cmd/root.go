@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/immunoconductor/cyto/cmd/cyto"
 	"github.com/immunoconductor/cyto/cmd/fcs"
 	"github.com/spf13/cobra"
 )
@@ -18,5 +19,5 @@ func Execute() error {
 
 func init() {
 	rootCmd.AddCommand(fcs.FcsCmd)
-	rootCmd.AddCommand(fcs.VersionCmd)
+	rootCmd.AddCommand(cyto.VersionCmd)
 }
