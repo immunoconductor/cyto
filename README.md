@@ -2,7 +2,7 @@
 
 **Cyto** is a Go library for cytometry data analysis. 
 
-- It provides tools to parse, process, and analyze Flow Cytometry Standard (FCS) files.
+- It provides tools to parse, process, and analyze Flow Cytometry Standard (FCS) files (FCS 3.1 standard).
 
 ## 📦 Features
 
