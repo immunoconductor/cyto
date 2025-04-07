@@ -52,6 +52,12 @@ go mod tidy
 Convert FCS files to CSV format:
 
 ```bash
+cyto fcs -i example.fcs -o example.csv
+```
+
+or 
+
+```bash
 cyto fcs -i example.fcs -o example.csv --transform --shortnames
 ```
 
