@@ -77,8 +77,8 @@ Options:
 - `-i`: Input FCS file path
 - `-o`: Output CSV file path
 - `--transform`: Apply arcsinh transformation to the data
-- `--shortnames`: Use short names (concise identifiers for each parameter in the data file) commonly used in flow cytometry experiments
-- `--names`: Output names
+- `--shortnames`: Use short names (concise identifiers)
+- `--names`: Output names (channel identifiers)
 
 ### Go Library Example
 
