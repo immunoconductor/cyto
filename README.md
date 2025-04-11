@@ -67,7 +67,7 @@ Convert FCS files to CSV format with transformation and shortnames for headings:
 cyto fcs -i example.fcs -o example.csv --transform --shortnames
 ```
 
-Output shortnames:
+Output names:
 
 ```bash
 cyto fcs -i example.fcs --names
@@ -78,7 +78,7 @@ Options:
 - `-o`: Output CSV file path
 - `--transform`: Apply arcsinh transformation to the data
 - `--shortnames`: Use short names (concise identifiers for each parameter in the data file) commonly used in flow cytometry experiments
-- `--names`: Output shortnames
+- `--names`: Output names
 
 ### Go Library Example
 
