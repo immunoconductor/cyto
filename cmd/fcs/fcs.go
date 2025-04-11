@@ -13,6 +13,7 @@ import (
 var (
 	InputFile  string
 	OutputFile string
+	Names      bool
 	ShortNames bool
 	Transform  bool
 )
@@ -20,9 +21,9 @@ var (
 func init() {
 	FcsCmd.Flags().StringVarP(&InputFile, "input", "i", "", "input file to read from")
 	FcsCmd.Flags().StringVarP(&OutputFile, "output", "o", "", "output file to write to")
-	FcsCmd.MarkFlagsRequiredTogether("input", "output")
 	FcsCmd.Flags().BoolVarP(&ShortNames, "shortnames", "s", false, "whether the output file should contain names or friendly names (shortnames) as fields, to be used with input and output flags")
 	FcsCmd.Flags().BoolVarP(&Transform, "transform", "t", false, "whether to apply asinh transformation to the data (cofactor of 5 is used)")
+	FcsCmd.Flags().BoolVarP(&Names, "names", "n", false, "names")
 }
 
 var FcsCmd = &cobra.Command{
@@ -49,23 +50,38 @@ var FcsCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		names, err := cmd.Flags().GetBool("names")
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		fcsData, err := fcs.Read(inputFile, transform)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if shortnames {
-			fcsData.ToShortNameCSV(outputFile)
-		} else {
-			fcsData.ToCSV(outputFile)
-		}
-		_ = bar.Add(1)
 
-		fileInfo, err := os.Stat(outputFile)
-		if err != nil {
-			log.Fatal(err)
+		if names {
+			fmt.Println(fcsData.Names())
 		}
-		fmt.Printf("Output location: %s (%v)\n", outputFile, humanReadableSize(fileInfo.Size()))
+		if shortnames {
+			fmt.Println(fcsData.ShortNames())
+		}
+
+		if outputFile != "" {
+			if shortnames {
+				fcsData.ToShortNameCSV(outputFile)
+			} else {
+				fcsData.ToCSV(outputFile)
+			}
+
+			fileInfo, err := os.Stat(outputFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Output location: %s (%v)\n", outputFile, humanReadableSize(fileInfo.Size()))
+		}
+
+		_ = bar.Add(1)
 	},
 }
 

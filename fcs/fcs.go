@@ -98,19 +98,11 @@ func (f *FCS) ToShortNameCSV(outputFilePath string) error {
 }
 
 func (f *FCS) ToTibble() [][]string {
-	var names []string
-	for _, v := range f.TEXT.Parameters {
-		names = append(names, v.PnN)
-	}
-	return append([][]string{names}, f.DATA.DataString...)
+	return append([][]string{f.Names()}, f.DATA.DataString...)
 }
 
 func (f *FCS) ToShortNameTibble() [][]string {
-	var shortnames []string
-	for _, v := range f.TEXT.Parameters {
-		shortnames = append(shortnames, v.PnS)
-	}
-	return append([][]string{shortnames}, f.DATA.DataString...)
+	return append([][]string{f.ShortNames()}, f.DATA.DataString...)
 }
 
 func (f *FCS) Names() []string {
@@ -119,6 +111,14 @@ func (f *FCS) Names() []string {
 		names = append(names, v.PnN)
 	}
 	return names
+}
+
+func (f *FCS) ShortNames() []string {
+	var shortnames []string
+	for _, v := range f.TEXT.Parameters {
+		shortnames = append(shortnames, v.PnS)
+	}
+	return shortnames
 }
 
 func (f *FCS) Keywords() map[string]string {
